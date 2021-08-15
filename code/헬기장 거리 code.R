@@ -44,6 +44,7 @@ dist_data
 
 ### 다익스트라 거리공식
 min_dist_data <- graph.adjacency(dist_data)
+min_dist_data
 par(mar = c(1,1,1,1))
 plot(min_dist_data)
 dijkstar_dist_data <- shortest.paths(min_dist_data, algorithm = "dijkstra") 
