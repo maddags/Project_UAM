@@ -8,7 +8,6 @@ library(writexl)
 
 map = readOGR("./EMD_202101/TL_SCCO_EMD.shp")
 code_address = read_excel("./읍면동법적코드.xlsx")
-people <- read_excel("./2018년_버티포트 위치 선정 변수.xlsx")
 
 map_list <- map@data
 head(map_list)
@@ -243,50 +242,58 @@ join_data_2 <- join_data_2[-as.numeric(rownames(duplicated_data)),]
 join_data_2[join_data_2$법정동명 %in% test4$법정동명,]$비행불가능여부 <- test4$비행불가능여부.y
 join_data_2[is.na(join_data_2$비행불가능여부),] 
 join_data_3 <- join_data_2[,-c(5,6)]
-
 write_xlsx(join_data_3,"검토.xlsx")
 
+# 터미널유무 데이터
+bus_station <- read.csv("./터미널법정동.csv")
+bus_station_copy <- bus_station[,-c(1,2,3)]
+head(bus_station_copy)
+str(bus_station_copy)
+bus_station_copy$코드 <- floor(bus_station_copy$코드/100)
+names(bus_station_copy)[1] <- "EMD_CD"
+bus_station_copy$EMD_CD <- as.character(bus_station_copy$EMD_CD)
+bus_join_data <- left_join(join_data_3, bus_station_copy, by ="EMD_CD")
+write_xlsx(bus_join_data,"bus_join_data.xlsx")
+bus_join_data <- read_excel("./bus_join_data.xlsx") %>% as.data.frame()
+bus_join_data<-bus_join_data[!(duplicated(bus_join_data$법정동명)),]
+bus_join_data$터미널유무[is.na(bus_join_data$터미널유무)] <- 0 
 
 
 ## 최종건축면적 데이터 추가
 buji <- read.csv("./최종건축면적-법정동.csv")
-buji_copy <- buji[,-c(6,7,9:16)]
-names(buji_copy)[5] <- c("EMD_CD")
-names(buji_copy)[6] <- c("건축면적")
+buji_copy <- buji[,-c(2,3,4,6,7,9:16)]
+names(buji_copy)[2] <- c("EMD_CD")
+names(buji_copy)[3] <- c("건축면적")
 buji_copy$EMD_CD <- floor(buji_copy$EMD_CD/100)
 buji_copy$EMD_CD <- as.character(buji_copy$EMD_CD)
+buji_copy[is.na(buji_copy),]
 View(buji_copy)
-join_data_4 <- left_join(join_data_3,buji_copy, by = "EMD_CD")
+join_data_4 <- left_join(bus_join_data,buji_copy, by = "EMD_CD")
+join_data_4$종류[is.na(join_data_4$종류)] <- "없음"
+join_data_4$건축면적[is.na(join_data_4$건축면적)] <- 0
 # write_xlsx(join_data_4,"검토.xlsx")
 #length(join_data_4$법정동명) - sum(duplicated(join_data_4$법정동명))
 
 
-people <- as.data.frame(people)
-View(people)
-people_1 <- people
-people_1$법정동명 <- paste(people_1$`도/광역시/시`,people_1$시군구,people_1$읍면동,
-                       rep = " ")
-View(people_1)
-people_1 <- people_1[,-c(2,3,4)]
-mix_data <- left_join(people_1,join_data, by ="법정동명")
-# write_xlsx(mix_data,"mix_data.xlsx")
 
 # 교통혼잡,인구수 데이터 합치기
 trans <- read_excel("./2018 리뉴얼.xlsx")
 trans <- as.data.frame(trans)
 trans_copy <- trans[,-c(1,12)]
-trans_copy$법정동명 <- paste(trans_copy$`도/광역시/시`,trans_copy$시군구,trans_copy$읍면동,
+trans_copy$행정주소 <- paste(trans_copy$`도/광역시/시`,trans_copy$시군구,trans_copy$읍면동,
                    rep = " ")
 trans_copy <- trans_copy[,-c(1,2,3)]
 trans_copy <- trans_copy[,c(8,1:7)]
 trans_copy
+write_xlsx(trans_copy,"trans_copy.xlsx")
 
 # 행정코드와 법정코드 합치기
-join_data_4[join_data_4$법정동명== "강원도 강릉시 강동면",]
-trans_copy[trans_copy$법정동명 == "강원도 강릉시 강동면",]
-join_data_5 <- left_join(join_data_4,trans_copy, by = "법정동명")
-write_xlsx(join_data_5, "검토.xlsx")
-write_xlsx(trans_copy,"trans_copy.xlsx")
 trans_copy <-  read_excel("./trans_copy.xlsx") %>% as.data.frame(trans_copy)
-join_data_6 <- full_join(join_data_4,trans_copy, by = "법정동명")
-write_xlsx(join_data_6,"검토.xlsx")
+# join_data_4, copy_relation_data 합치기
+copy_relation_data <- read_excel("./copy_relation_data.xlsx") %>% as.data.frame()
+final_data <- left_join(copy_relation_data, join_data_4, by ="법정동명")
+final_data <- final_data[,-11]
+names(final_data)[8] <- "EMD_CD"
+final_data_2 <- left_join(final_data, trans_copy, by ="행정주소")
+final_data_2 <- final_data_2[,-c(11,23)]
+write_xlsx(final_data_2,"1차가공완료데이터.xlsx")
