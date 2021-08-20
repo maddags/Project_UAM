@@ -24,12 +24,12 @@ names(copy_relation_data)[8] <- "EMD_CD"
 write_xlsx(copy_relation_data,"copy_relation_data.xlsx")
 
 # 터미널유무 데이터
-bus_station <- read.csv("./터미널법정동.csv")
-bus_station_copy <- bus_station[,-c(1,2,3)]
-head(bus_station_copy)
-str(bus_station_copy)
-bus_station_copy$코드 <- floor(bus_station_copy$코드/100)
-names(bus_station_copy)[1] <- "EMD_CD"
+#bus_station <- read.csv("./터미널법정동.csv")
+#bus_station_copy <- bus_station[,-c(1,2,3)]
+#head(bus_station_copy)
+#str(bus_station_copy)
+#bus_station_copy$코드 <- floor(bus_station_copy$코드/100)
+#names(bus_station_copy)[1] <- "EMD_CD"
 
 
 # join_data_4, copy_relation_data 합치기

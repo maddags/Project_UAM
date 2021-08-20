@@ -227,9 +227,9 @@ address_list
 
 ### 변수 x.1의 NA값 채워넣기 
 duplicated_data$법정동명 <- address_list
-for(i in c(1:length(join_data_2$법정동명))){
-  if(is.na(join_data_2$X.1)[i] == TRUE){
-    join_data_2$X.1[i] <- join_data_2$법정동명[i]
+for(i in c(1:length(join_data_EN_2$법정동명))){
+  if(is.na(join_data_EN_2$X.1)[i] == TRUE){
+    join_data_EN_2$X.1[i] <- join_data_EN_2$법정동명[i]
   }
 }
 
@@ -279,16 +279,37 @@ join_data_4$건축면적[is.na(join_data_4$건축면적)] <- 0
 # 교통혼잡,인구수 데이터 합치기
 trans <- read_excel("./2018 리뉴얼.xlsx")
 trans <- as.data.frame(trans)
-trans_copy <- trans[,-c(1,12)]
+trans_copy <- trans[,-10]
 trans_copy$행정주소 <- paste(trans_copy$`도/광역시/시`,trans_copy$시군구,trans_copy$읍면동,
                    rep = " ")
 trans_copy <- trans_copy[,-c(1,2,3)]
-trans_copy <- trans_copy[,c(8,1:7)]
+trans_copy <- trans_copy[,c(7,1:6)]
 trans_copy
 write_xlsx(trans_copy,"trans_copy.xlsx")
 
 # 행정코드와 법정코드 합치기
 trans_copy <-  read_excel("./trans_copy.xlsx") %>% as.data.frame(trans_copy)
+relation_data <- read_excel("./행정법정동코드 연계자료.xlsx")
+copy_relation_data <- relation_data[,-c(8,10,11,12)]
+colnames(copy_relation_data) <- copy_relation_data[1,]
+copy_relation_data <- copy_relation_data[-1,]
+
+## 읍면동 데이터만 남기기
+si_data_list <- grep("시$",copy_relation_data$`행정동(행정기관명)`, value = 1)
+gu_data_list <- grep("구$",copy_relation_data$`행정동(행정기관명)`, value = 1)
+gun_data_list <- grep("군$",copy_relation_data$`행정동(행정기관명)`, value = 1)
+
+copy_relation_data <- copy_relation_data[!(copy_relation_data$`행정동(행정기관명)` %in% gu_data_list),]
+copy_relation_data <- copy_relation_data[!(copy_relation_data$`행정동(행정기관명)` %in% gun_data_list),]
+copy_relation_data <- copy_relation_data[!(copy_relation_data$`행정동(행정기관명)` %in% si_data_list),]
+copy_relation_data$법정동코드 <- floor(as.numeric(copy_relation_data$법정동코드)/100)
+copy_relation_data$행정주소 <- paste(copy_relation_data$시도,copy_relation_data$시군구,
+                                 copy_relation_data$행정구역명, rep ="")
+copy_relation_data$법정동명 <- paste(copy_relation_data$시도,copy_relation_data$시군구,
+                                 copy_relation_data$법정동, rep ="")
+names(copy_relation_data)[8] <- "EMD_CD"
+write_xlsx(copy_relation_data,"copy_relation_data.xlsx")
+
 # join_data_4, copy_relation_data 합치기
 copy_relation_data <- read_excel("./copy_relation_data.xlsx") %>% as.data.frame()
 final_data <- left_join(copy_relation_data, join_data_4, by ="법정동명")

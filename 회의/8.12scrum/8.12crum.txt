@@ -1,0 +1,2 @@
+대한민국 최신 행정구역(shp) url : http://www.gisdeveloper.co.kr/?p=2332
+행정구역 코드 url :  code.go.kr
