@@ -142,7 +142,7 @@ colnames(distance) <- c("터미널과의거리","기차역과의거리","공항�
 third_data <- data.frame(c(0:3269),join_data_2,distance)
 third_data <- third_data[,c(1,10:11,3:9,12:14)]
 colnames(third_data)[1] <- "new_id"
-write_xlsx(third_data,"가공데이터.xlsx")
+write_xlsx(third_data,"전처리데이터.xlsx")
 
 
 
